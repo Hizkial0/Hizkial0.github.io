@@ -1,0 +1,40 @@
+name: Publish portfolio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - website.zip
+      - .github/workflows/deploy-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the portfolio
+        uses: actions/checkout@v4
+      - name: Prepare website files
+        run: unzip -q website.zip -d _site
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+          retention-days: 1
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
